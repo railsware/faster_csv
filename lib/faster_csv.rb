@@ -90,7 +90,7 @@ require "stringio"
 # 
 class FasterCSV
   # The version of the installed library.
-  VERSION = "1.5.5".freeze
+  VERSION = "1.5.6".freeze
   
   # 
   # A FasterCSV::Row is part Array and part Hash.  It retains an order for the
@@ -832,7 +832,8 @@ class FasterCSV
                       :return_headers     => false,
                       :header_converters  => nil,
                       :skip_blanks        => false,
-                      :force_quotes       => false }.freeze
+                      :force_quotes       => false,
+                      :raise_exception    => false}.freeze
   
   # 
   # This method will build a drop-in replacement for many of the standard CSV
@@ -1639,10 +1640,10 @@ class FasterCSV
             current_field << @col_sep
           end
         elsif match.count("\r\n").zero?
-          raise MalformedCSVError, "Illegal quoting on line #{lineno + 1}."
+          raise MalformedCSVError, "Illegal quoting on line #{lineno + 1}." if @raise_exception
         else
           raise MalformedCSVError, "Unquoted fields do not allow " +
-                                   "\\r or \\n (line #{lineno + 1})."
+                                   "\\r or \\n (line #{lineno + 1})."  if @raise_exception
         end
       end
 
@@ -1668,7 +1669,7 @@ class FasterCSV
       end
       # if we're not empty?() but at eof?(), a quoted field wasn't closed...
       if @io.eof?
-        raise MalformedCSVError, "Unclosed quoted field on line #{lineno + 1}."
+        raise MalformedCSVError, "Unclosed quoted field on line #{lineno + 1}." if @raise_exception
       elsif @field_size_limit and current_field.size >= @field_size_limit
         raise MalformedCSVError, "Field size exceeded on line #{lineno + 1}."
       end
@@ -1734,6 +1735,7 @@ class FasterCSV
         @row_sep = $INPUT_RECORD_SEPARATOR
       else
         begin
+          raise IOError, "IO is nil" unless @io
           saved_pos = @io.pos  # remember where we were
           while @row_sep == :auto
             # 
@@ -1801,6 +1803,7 @@ class FasterCSV
     @skip_blanks      = options.delete(:skip_blanks)
     @encoding         = options.delete(:encoding)  # nil will use $KCODE
     @field_size_limit = options.delete(:field_size_limit)
+    @raise_exception  = options.delete(:raise_exception)
 
     # prebuild Regexps for faster parsing
     esc_col_sep = Regexp.escape(@col_sep)

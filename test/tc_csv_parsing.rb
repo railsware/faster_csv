@@ -163,6 +163,9 @@ class TestCSVParsing < Test::Unit::TestCase
                     $!.message )
     end
 
+    assert_nothing_raised(FasterCSV::MalformedCSVError) do 
+      FasterCSV.parse_line('1,2,"3...',{:raise_exception => false})
+    end
     assert_raise(FasterCSV::MalformedCSVError) do 
       FasterCSV.parse_line('1,2,"3...')
     end
