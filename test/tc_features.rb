@@ -36,7 +36,7 @@ class TestFasterCSVFeatures < Test::Unit::TestCase
     
     line,4,jkl
     END_DATA
-    @csv = FasterCSV.new(@sample_data)
+    @csv = FasterCSV.new(@sample_data,  :single_line => false)
   end
   
   def test_col_sep
@@ -44,7 +44,7 @@ class TestFasterCSVFeatures < Test::Unit::TestCase
       TEST_CASES.each do |test_case|
         assert_equal( test_case.last.map { |t| t.tr(",", sep) unless t.nil? },
                       FasterCSV.parse_line( test_case.first.tr(",", sep),
-                                            :col_sep => sep ) )
+                                            :col_sep => sep, :single_line => false ) )
       end
     end
     assert_equal( [",,,", nil],
@@ -53,7 +53,7 @@ class TestFasterCSVFeatures < Test::Unit::TestCase
   
   def test_row_sep
     assert_raise(FasterCSV::MalformedCSVError) do
-        FasterCSV.parse_line("1,2,3\n,4,5\r\n", :row_sep => "\r\n")
+        FasterCSV.parse_line("1,2,3\n,4,5\r\n", :row_sep => "\r\n", :raise_exception => true, :single_line => false)
     end
     assert_equal( ["1", "2", "3\n", "4", "5"],
                   FasterCSV.parse_line( %Q{1,2,"3\n",4,5\r\n},
@@ -64,7 +64,7 @@ class TestFasterCSVFeatures < Test::Unit::TestCase
     TEST_CASES.each do |test_case|
       assert_equal( test_case.last.map { |t| t.tr('"', "'") unless t.nil? },
                     FasterCSV.parse_line( test_case.first.tr('"', "'"),
-                                          :quote_char => "'" ) )
+                                          :quote_char => "'", :single_line => false ) )
     end
   end
   
@@ -110,7 +110,7 @@ class TestFasterCSVFeatures < Test::Unit::TestCase
   def test_skip_blanks
     assert_equal(4, @csv.to_a.size)
 
-    @csv  = FasterCSV.new(@sample_data, :skip_blanks => true)
+    @csv  = FasterCSV.new(@sample_data, :skip_blanks => true, :single_line => false)
     
     count = 0
     @csv.each do |row|

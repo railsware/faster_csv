@@ -41,5 +41,29 @@ class TestFasterCSVRPCases < Test::Unit::TestCase
     assert_equal(5,lines.size)
   end
   
+  #RPBS-3899
+  def test_success_import_file_with_unclosed_quotes
+    lines = []
+    csv = FasterCSV.open(File.join(File.dirname(__FILE__), "quotes_firstrow.csv"), :raise_exception => false)
+    assert_nothing_raised do
+      while line = csv.gets
+        lines<<line
+      end
+    end
+    # puts lines.inspect
+    assert_equal(4,lines.size)
+  end
+
+  def test_failed_import_file_with_unclosed_quotes
+    lines = []
+    csv = FasterCSV.open(File.join(File.dirname(__FILE__), "quotes_firstrow.csv"), :raise_exception => false, :single_line => false)
+    assert_nothing_raised do
+      while line = csv.gets
+        lines<<line
+      end
+    end
+    assert_equal(1,lines.size)
+  end
+  
 
 end

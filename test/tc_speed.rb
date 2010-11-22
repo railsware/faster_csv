@@ -40,16 +40,16 @@ class TestFasterCSVSpeed < Test::Unit::TestCase
   end
   
   def test_the_parse_fails_fast_when_it_can_for_unquoted_fields
-    assert_parse_errors_out('valid,fields,bad start"' + BIG_DATA)
+    assert_parse_errors_out('valid,fields,bad start"' + BIG_DATA, :raise_exception => true, :single_line => false)
   end
   
   def test_the_parse_fails_fast_when_it_can_for_unescaped_quotes
-    assert_parse_errors_out('valid,fields,"bad start"unescaped' + BIG_DATA)
+    assert_parse_errors_out('valid,fields,"bad start"unescaped' + BIG_DATA, :raise_exception => true, :single_line => false)
   end
   
   def test_field_size_limit_controls_lookahead
     assert_parse_errors_out( 'valid,fields,"' + BIG_DATA + '"',
-                             :field_size_limit => 2048 )
+                             :field_size_limit => 2048, :raise_exception => true, :single_line => false)
   end
   
   private

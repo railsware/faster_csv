@@ -52,7 +52,7 @@ class TestCSVParsing < Test::Unit::TestCase
       ["foo,\"\r\n\n\",baz", ["foo", "\r\n\n", "baz"]],
       ["foo,\"foo,bar\",baz", ["foo", "foo,bar", "baz"]],
       [";,;", [";", ";"]] ].each do |csv_test|
-      assert_equal(csv_test.last, FasterCSV.parse_line(csv_test.first))
+      assert_equal(csv_test.last, FasterCSV.parse_line(csv_test.first, :single_line => false))
     end
 
     [ ["foo,\"\"\"\"\"\",baz", ["foo", "\"\"", "baz"]],
@@ -71,7 +71,7 @@ class TestCSVParsing < Test::Unit::TestCase
       ["foo,bar", ["foo", "bar"]],
       ["foo,\"\r\n\n\",baz", ["foo", "\r\n\n", "baz"]],
       ["foo,\"foo,bar\",baz", ["foo", "foo,bar", "baz"]] ].each do |csv_test|
-      assert_equal(csv_test.last, FasterCSV.parse_line(csv_test.first))
+      assert_equal(csv_test.last, FasterCSV.parse_line(csv_test.first, :single_line => false))
     end
   end
   
@@ -94,7 +94,7 @@ class TestCSVParsing < Test::Unit::TestCase
       [%Q{,"\r"},             [nil,"\r"]],
       [%Q{"\r\n,"},           ["\r\n,"]],
       [%Q{"\r\n,",},          ["\r\n,", nil]] ].each do |edge_case|
-        assert_equal(edge_case.last, FasterCSV.parse_line(edge_case.first))
+        assert_equal(edge_case.last, FasterCSV.parse_line(edge_case.first, :single_line => false))
       end
   end
   
@@ -121,7 +121,7 @@ class TestCSVParsing < Test::Unit::TestCase
       [%Q{"a\r\n\r\na","two CRLFs"},       ["a\r\n\r\na", 'two CRLFs']],
       [%Q{with blank,"start\n\nfinish"\n}, ['with blank', "start\n\nfinish"]],
     ].each do |edge_case|
-      assert_equal(edge_case.last, FasterCSV.parse_line(edge_case.first))
+      assert_equal(edge_case.last, FasterCSV.parse_line(edge_case.first, :single_line => false))
     end
   end
 
@@ -138,7 +138,7 @@ class TestCSVParsing < Test::Unit::TestCase
   
   def test_malformed_csv
     assert_raise(FasterCSV::MalformedCSVError) do
-      FasterCSV.parse_line("1,2\r,3", :row_sep => "\n")
+      FasterCSV.parse_line("1,2\r,3", :row_sep => "\n", :raise_exception => true, :single_line => false)
     end
     
     bad_data = <<-END_DATA.gsub(/^ +/, "")
@@ -152,7 +152,7 @@ class TestCSVParsing < Test::Unit::TestCase
     assert_equal(6, lines.size)
     assert_match(/\Aline,4/, lines.find { |l| l =~ /some\rjunk/ })
     
-    csv = FasterCSV.new(bad_data)
+    csv = FasterCSV.new(bad_data, :raise_exception => true, :single_line => false)
     begin
       loop do
         assert_not_nil(csv.shift)
@@ -164,10 +164,10 @@ class TestCSVParsing < Test::Unit::TestCase
     end
 
     assert_nothing_raised(FasterCSV::MalformedCSVError) do 
-      FasterCSV.parse_line('1,2,"3...',{:raise_exception => false})
+      FasterCSV.parse_line('1,2,"3...')
     end
     assert_raise(FasterCSV::MalformedCSVError) do 
-      FasterCSV.parse_line('1,2,"3...')
+      FasterCSV.parse_line('1,2,"3...',{:raise_exception => true, :single_line => false} )
     end
     
     bad_data = <<-END_DATA.gsub(/^ +/, "")
@@ -181,7 +181,7 @@ class TestCSVParsing < Test::Unit::TestCase
     assert_equal(6, lines.size)
     assert_match(/\Aline,4/, lines.find { |l| l =~ /8'10"/ })
     
-    csv = FasterCSV.new(bad_data)
+    csv = FasterCSV.new(bad_data, :raise_exception => true, :single_line => false)
     begin
       loop do
         assert_not_nil(csv.shift)

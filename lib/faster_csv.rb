@@ -90,7 +90,7 @@ require "stringio"
 # 
 class FasterCSV
   # The version of the installed library.
-  VERSION = "1.5.6".freeze
+  #VERSION = "1.5.6".freeze
   
   # 
   # A FasterCSV::Row is part Array and part Hash.  It retains an order for the
@@ -833,7 +833,8 @@ class FasterCSV
                       :header_converters  => nil,
                       :skip_blanks        => false,
                       :force_quotes       => false,
-                      :raise_exception    => false}.freeze
+                      :raise_exception    => false,
+                      :single_line        => true}.freeze
   
   # 
   # This method will build a drop-in replacement for many of the standard CSV
@@ -1591,9 +1592,12 @@ class FasterCSV
       # add another read to the line
       if read_line = @io.gets(@row_sep)
        line += read_line
+       
+        line = '' if @single_line && line.scan(Regexp.new(@quote_char)).size%2 != 0
       else
        return nil
       end
+      
       # copy the line so we can chop it up in parsing
       parse =  line.dup
       parse.sub!(@parsers[:line_end], "")
@@ -1804,7 +1808,8 @@ class FasterCSV
     @encoding         = options.delete(:encoding)  # nil will use $KCODE
     @field_size_limit = options.delete(:field_size_limit)
     @raise_exception  = options.delete(:raise_exception)
-
+    @single_line      = options.delete(:single_line)
+    
     # prebuild Regexps for faster parsing
     esc_col_sep = Regexp.escape(@col_sep)
     esc_row_sep = Regexp.escape(@row_sep)
